@@ -146,43 +146,33 @@ Submit a word attempt for the current puzzle.
 http://localhost:8000/api/game
 ```
 
-### Endpoints
-
-#### 1. Create Puzzle
+#### 1. 🎲 Create Puzzle
 ```http
 POST /api/game/puzzle
 Content-Type: application/json
+```
 
-
-
-#### 2. Submit Word
+#### 2. 📝 Submit Word
 ```http
 POST /api/game/submit
 Content-Type: application/json
+```
 
-
-
-#### 3. Get Game State
+#### 3. 📊 Get Game State
 ```http
 GET /api/game/state/{sessionId}
 ```
 
-
-
-#### 4. Get Leaderboard
+#### 4. 🏆 Get Leaderboard
 ```http
 GET /api/game/leaderboard
 ```
 
-
-```
-
-#### 5. End Game
+#### 5. ⛔ End Game
 ```http
 POST /api/game/end
 Content-Type: application/json
-
-
+```
 
 ### Interactive Documentation
 - **Swagger UI**: `http://localhost:8000/api/doc`
