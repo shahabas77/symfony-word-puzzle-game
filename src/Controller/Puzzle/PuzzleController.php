@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Api;
+namespace App\Controller\Puzzle;
 
 use App\Service\PuzzleService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
