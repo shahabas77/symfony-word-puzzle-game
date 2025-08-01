@@ -1,44 +1,44 @@
 # Word Puzzle Game 
 
-A robust backend service for a word puzzle game where students create English words from a given set of letters. Built with Symfony 6+ and PHP 8.1+.
 
-## 📋 Table of Contents
+# 🧩 Word Puzzle Game Backend (Symfony + MySQL)
 
-- [Features](#-features)
-- [Technology Stack](#-technology-stack)
-- [Project Structure](#-project-structure)
-- [Installation & Setup](#-installation--setup)
-- [API Documentation](#-api-documentation)
-- [Game Workflow](#-game-workflow)
-- [Testing](#-testing)
-- [Development](#-development)
-- [Deployment](#-deployment)
+This project is a RESTful backend system for a word puzzle game. Players are given a 14-letter random puzzle and can submit valid English words to score points. A leaderboard highlights top-performing submissions. Built with Symfony and powered by MySQL.
 
-## ✨ Features
+---
 
-### Core Game Features
-- **Random Puzzle Generation**: Creates 14-letter puzzles with guaranteed valid words
-- **Word Validation**: Validates submissions against English dictionary
-- **Letter Management**: Tracks remaining letters and prevents duplicate usage
-- **Scoring System**: 1 point per letter used
-- **Leaderboard**: Top 10 highest-scoring unique words
-- **Game State Management**: Tracks active games and submissions
+## ✨ What This Project Offers
 
-### Technical Features
-- **RESTful API**: Clean, documented endpoints
-- **Dependency Injection**: Proper service architecture
-- **Unit Testing**: Comprehensive test coverage
-- **Database Integration**: PostgreSQL for development, supports other databases
-- **Exception Handling**: Proper error responses
-- **Caching**: Dictionary word caching for performance
+### 🎮 Game Logic
+- ✅ **Puzzle Generator**: Random 14-letter strings with guaranteed dictionary-valid words.
+- ✅ **Word Validator**: Accepts only dictionary-valid, unused words from the puzzle letters.
+- ✅ **Scoring System**: Awards 1 point per valid letter used in the word.
+- ✅ **Letter Tracker**: Dynamically updates and prevents reuse of letters.
+- ✅ **Leaderboard**: Top 10 unique submissions by score.
+- ✅ **Session Handling**: Tracks ongoing puzzles and submissions per student.
 
-## 🛠 Technology Stack
+### 🛠 Backend Engineering
+- 🔌 **REST API**: Clean, stateless JSON-based endpoints.
+- 💡 **Service Architecture**: Uses dependency injection and separation of concerns.
+- ⚠️ **Error Handling**: Graceful exception management with meaningful responses.
+- 📄 **Word Caching**: Caches word list from file for optimized performance.
+- 🧪 **Unit Tests**: PHPUnit tests for core game services.
+- 🗄️ **Database**: MySQL used with Doctrine ORM and migrations.
 
-- **Framework**: Symfony 6+
-- **PHP Version**: 8.1+
-- **Database**: PostgreSQL (development), MySQL/PostgreSQL (production)
-- **Testing**: PHPUnit
-- **Frontend**: HTML, CSS, JavaScript (jQuery)
+---
+
+## 🧪 Tech Stack
+
+| Layer         | Technology                     |
+|---------------|--------------------------------|
+| Framework     | Symfony 6                      |
+| Language      | PHP 8.1+                        |
+| ORM           | Doctrine                       |
+| Database      | MySQL                          |
+| Testing       | PHPUnit                        |
+| Frontend      | HTML, CSS, JavaScript (jQuery) |
+| Templating    | Twig (for web views)           |
+| Tools         | Composer, Symfony CLI          |
 
 ## 📁 Project Structure
 
@@ -122,93 +122,24 @@ symfony server:start
 
 Creates a new puzzle for a student session.
 
-**Request Body**:
-```json
-{
-    "sessionId": "student123"
-}
-```
 
-**Response**:
-```json
-{
-    "puzzleString": "ETAOINSHRDLUCM",
-    "remainingLetters": "ETAOINSHRDLUCM",
-    "totalScore": 0,
-    "isActive": true,
-    "submissions": [],
-    "createdAt": "2024-01-15 10:30:00"
-}
-```
+
 
 ### 2. Submit Word
 **POST** `/api/game/submit`
 
 Submit a word attempt for the current puzzle.
 
-**Request Body**:
-```json
-{
-    "sessionId": "student123",
-    "word": "HEAT"
-}
-```
-
-**Response**:
-```json
-{
-    "word": "HEAT",
-    "score": 4,
-    "totalScore": 4,
-    "remainingLetters": "STARMINDFIRE",
-    "isComplete": false,
-    "submissionId": 1
-}
-```
 
 ### 3. Get Puzzle State
 **GET** `/api/game/state/{sessionId}`
 
-Get the current state of a student's puzzle.
 
-**Response**:
-```json
-{
-    "puzzleString": "ETAOINSHRDLUCM",
-    "remainingLetters": "STARMINDFIRE",
-    "totalScore": 4,
-    "isActive": true,
-    "submissions": [
-        {
-            "word": "HEAT",
-            "score": 4,
-            "submittedAt": "2024-01-15 10:35:00"
-        }
-    ],
-    "createdAt": "2024-01-15 10:30:00"
-}
-```
 
 ### 4. Get Leaderboard
 **GET** `/api/game/leaderboard`
 
-Get the top 10 highest-scoring submissions.
 
-**Response**:
-```json
-[
-    {
-        "word": "HEAT",
-        "score": 4,
-        "createdAt": "2024-01-15 10:35:00"
-    },
-    {
-        "word": "STAR",
-        "score": 4,
-        "createdAt": "2024-01-15 10:40:00"
-    }
-]
-```
 
 ### Base URL
 ```
@@ -222,87 +153,28 @@ http://localhost:8000/api/game
 POST /api/game/puzzle
 Content-Type: application/json
 
-{
-    "sessionId": "student123"
-}
-```
 
-**Response:**
-```json
-{
-    "puzzleString": "ETAOINSHRDLUCM",
-    "remainingLetters": "ETAOINSHRDLUCM",
-    "totalScore": 0,
-    "isActive": true,
-    "createdAt": "2024-01-15T10:30:00+00:00"
-}
-```
 
 #### 2. Submit Word
 ```http
 POST /api/game/submit
 Content-Type: application/json
 
-{
-    "sessionId": "student123",
-    "word": "HEAT"
-}
-```
 
-**Response:**
-```json
-{
-    "word": "HEAT",
-    "score": 4,
-    "totalScore": 4,
-    "remainingLetters": "STARMINDFIRE",
-    "isComplete": false,
-    "submissionId": 1
-}
-```
 
 #### 3. Get Game State
 ```http
 GET /api/game/state/{sessionId}
 ```
 
-**Response:**
-```json
-{
-    "puzzleString": "ETAOINSHRDLUCM",
-    "remainingLetters": "STARMINDFIRE",
-    "totalScore": 4,
-    "isActive": true,
-    "submissions": [
-        {
-            "word": "HEAT",
-            "score": 4,
-            "submittedAt": "2024-01-15T10:30:00+00:00"
-        }
-    ],
-    "createdAt": "2024-01-15T10:30:00+00:00"
-}
-```
+
 
 #### 4. Get Leaderboard
 ```http
 GET /api/game/leaderboard
 ```
 
-**Response:**
-```json
-[
-    {
-        "word": "HEAT",
-        "score": 4,
-        "createdAt": "2024-01-15T10:30:00+00:00"
-    },
-    {
-        "word": "STAR",
-        "score": 4,
-        "createdAt": "2024-01-15T10:31:00+00:00"
-    }
-]
+
 ```
 
 #### 5. End Game
@@ -310,18 +182,7 @@ GET /api/game/leaderboard
 POST /api/game/end
 Content-Type: application/json
 
-{
-    "sessionId": "student123"
-}
-```
 
-**Response:**
-```json
-{
-    "remainingWords": ["STAR", "MIND", "FIRE"],
-    "totalScore": 8
-}
-```
 
 ### Interactive Documentation
 - **Swagger UI**: `http://localhost:8000/api/doc`
@@ -409,7 +270,7 @@ class GameServiceTest extends TestCase
 
 ### Key Services
 
-#### GameService
+#### PuzzleService
 - **Purpose**: Core game logic and business rules
 - **Responsibilities**:
   - Puzzle creation and management
@@ -418,7 +279,7 @@ class GameServiceTest extends TestCase
   - Game state management
   - Leaderboard updates
 
-#### DictionaryService
+#### WordListService
 - **Purpose**: Word validation and dictionary operations
 - **Responsibilities**:
   - English word validation
@@ -448,22 +309,15 @@ class GameServiceTest extends TestCase
 - `puzzle`: Associated puzzle
 - `submittedAt`: Submission timestamp
 
-#### LeaderboardEntry Entity
+#### Scores Entity
 - `id`: Primary key
 - `word`: Word entry
 - `score`: Word score
 - `createdAt`: Entry timestamp
 
-### Error Handling
-The application uses proper exception handling:
-
-```php
-// Custom exceptions for different scenarios
-throw new BadRequestHttpException('Word cannot be empty');
-throw new NotFoundHttpException('No active puzzle found');
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Production Setup
 
@@ -548,13 +402,3 @@ CMD ["php", "-S", "0.0.0.0:80", "-t", "public/"]
 - Use dependency injection
 - Handle exceptions properly
 
-## 🤝 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the API
-- Review the test cases for usage examples
-
----
-
-**Happy Word Puzzling! 🎯** 
