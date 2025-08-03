@@ -5,11 +5,9 @@ namespace App\Service;
 use App\Entity\Puzzle;
 use App\Entity\Student;
 use App\Entity\Submission;
-use App\Entity\Scores;
 use App\Repository\PuzzleRepository;
 use App\Repository\StudentRepository;
 use App\Repository\SubmissionRepository;
-use App\Repository\ScoresRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -26,14 +24,13 @@ class PuzzleService
         private PuzzleRepository $puzzleRepository,
         private StudentRepository $studentRepository,
         private SubmissionRepository $submissionRepository,
-        private ScoresRepository $scoresRepository
     ) {
     }
 
-    public function createPuzzle(string $sessionId): Puzzle
+    public function generatePuzzle(string $studentName): Puzzle
     {
         // Check if student already has an active puzzle
-        $student = $this->studentRepository->findOneBy(['sessionId' => $sessionId]);
+        $student = $this->studentRepository->findOneBy(['studentName' => $studentName]);
 
         if ($student && $student->getPuzzle() && $student->getPuzzle()->isActive()) {
             return $student->getPuzzle();
@@ -49,7 +46,7 @@ class PuzzleService
         // Create or update student
         if (!$student) {
             $student = new Student();
-            $student->setSessionId($sessionId);
+            $student->setStudentName($studentName);
         }
 
         $student->setPuzzle($puzzle);
@@ -62,9 +59,9 @@ class PuzzleService
         return $puzzle;
     }
 
-    public function submitWord(string $sessionId, string $word): array
+    public function submitWord(string $studentName, string $word): array
     {
-        $student = $this->studentRepository->findOneBy(['sessionId' => $sessionId]);
+        $student = $this->studentRepository->findOneBy(['studentName' => $studentName]);
 
         if (!$student || !$student->getPuzzle() || !$student->getPuzzle()->isActive()) {
             throw new NotFoundHttpException('No active puzzle found for this session');
@@ -82,9 +79,6 @@ class PuzzleService
             throw new BadRequestHttpException('Word is too long');
         }
 
-        if (!ctype_alpha($word)) {
-            throw new BadRequestHttpException('Word must contain only letters');
-        }
 
         // Check if word is already submitted
         $existingSubmission = $this->submissionRepository->findOneBy([
@@ -102,7 +96,7 @@ class PuzzleService
         }
 
         // Check if word can be formed from remaining letters
-        if (!$puzzle->canUseLetters($word)) {
+        if (!$puzzle->hasAvailableLetters($word)) {
             throw new BadRequestHttpException('No such word found with remaining letters');
         }
 
@@ -128,9 +122,6 @@ class PuzzleService
         $this->entityManager->persist($submission);
         $this->entityManager->flush();
 
-        // Update leaderboard if score is high enough
-        $this->updateTopScorers($word, $score);
-
         return [
             'word' => $word,
             'score' => $score,
@@ -142,9 +133,9 @@ class PuzzleService
         ];
     }
 
-    public function getPuzzleState(string $sessionId): array
+    public function loadPuzzleStatus(string $studentName): array
     {
-        $student = $this->studentRepository->findOneBy(['sessionId' => $sessionId]);
+        $student = $this->studentRepository->findOneBy(['studentName' => $studentName]);
 
         if (!$student || !$student->getPuzzle()) {
             throw new NotFoundHttpException('No puzzle found for this session');
@@ -165,26 +156,6 @@ class PuzzleService
             ], $submissions->toArray()),
             'createdAt' => $puzzle->getCreatedAt()->format('Y-m-d H:i:s')
         ];
-    }
-
-    public function getLeaderboard(): array
-    {
-        // Get top 10 students by total score
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->select('s.sessionId AS student', 'SUM(sub.score) AS totalScore')
-            ->from('App\Entity\Submission', 'sub')
-            ->join('sub.puzzle', 'p')
-            ->join('p.student', 's')
-            ->groupBy('s.sessionId')
-            ->orderBy('totalScore', 'DESC')
-            ->setMaxResults(10);
-
-        $results = $qb->getQuery()->getResult();
-
-        return array_map(fn($row) => [
-            'student' => $row['student'],
-            'score' => $row['totalScore']
-        ], $results);
     }
 
     private function generatePuzzleString(): string
@@ -228,47 +199,11 @@ class PuzzleService
         return empty($remainingWords);
     }
 
-    private function updateTopScorers(string $word, int $score): void
+
+
+    public function endGame(string $studentName): array
     {
-        // Check if this word already exists in leaderboard
-        $existingEntry = $this->scoresRepository->findOneBy(['word' => $word]);
-
-        if (!$existingEntry) {
-            // Check if we need to add to leaderboard
-            $lowestScore = $this->scoresRepository->findOneBy([], ['score' => 'ASC']);
-
-            if (!$lowestScore || $score >= $lowestScore->getScore()) {
-                $entry = new Scores();
-                $entry->setWord($word);
-                $entry->setScore($score);
-
-                $this->entityManager->persist($entry);
-                $this->entityManager->flush();
-
-                // Keep only top 10 entries
-                $this->limitLeaderboard();
-            }
-        }
-    }
-
-    private function limitLeaderboard(): void
-    {
-        $allEntries = $this->scoresRepository->findBy([], ['score' => 'DESC', 'createdAt' => 'ASC']);
-
-        if (count($allEntries) > 10) {
-            $entriesToRemove = array_slice($allEntries, 10);
-
-            foreach ($entriesToRemove as $entry) {
-                $this->entityManager->remove($entry);
-            }
-
-            $this->entityManager->flush();
-        }
-    }
-
-    public function endGame(string $sessionId): array
-    {
-        $student = $this->studentRepository->findOneBy(['sessionId' => $sessionId]);
+        $student = $this->studentRepository->findOneBy(['studentName' => $studentName]);
         $puzzle = $student->getPuzzle();
         $remainingWords = $this->wordListService->calculateRemainingWords($puzzle->getRemainingLetters());
         $totalScore = $puzzle->getTotalScore();
@@ -278,6 +213,26 @@ class PuzzleService
             'remainingWords' => $remainingWords,
             'totalScore' => $totalScore
         ];
+    }
+
+    public function getLeaderboard(): array
+    {
+        // Get top 10 students by total score
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('s.studentName AS student', 'SUM(sub.score) AS totalScore')
+            ->from('App\Entity\Submission', 'sub')
+            ->join('sub.puzzle', 'p')
+            ->join('p.student', 's')
+            ->groupBy('s.studentName')
+            ->orderBy('totalScore', 'DESC')
+            ->setMaxResults(10);
+
+        $results = $qb->getQuery()->getResult();
+
+        return array_map(fn($row) => [
+            'student' => $row['student'],
+            'score' => $row['totalScore']
+        ], $results);
     }
 
 }

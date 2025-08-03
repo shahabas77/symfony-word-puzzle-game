@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Annotations as OA;
 
 #[Route('/api/game', name: 'api_game_')]
 class PuzzleController extends AbstractController
@@ -16,24 +15,19 @@ class PuzzleController extends AbstractController
     public function __construct(private PuzzleService $puzzleService){}
 
     #[Route('/puzzle', name: 'create_puzzle', methods: ['POST'])]
-    /**
-     * @OA\Post(
-     *     path="/api/game/puzzle",
-     *     summary="Create a new puzzle"
-     * )
-     */
-    public function createPuzzle(Request $request): JsonResponse
+
+    public function startNewPuzzle(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $sessionId = $data['sessionId'] ?? null;
+        $studentName = $data['studentName'] ?? null;
 
-        if (!$sessionId) {
-            return $this->json(['error' => 'Session ID is required'], Response::HTTP_BAD_REQUEST);
+        if (!$studentName) {
+            return $this->json(['error' => 'Something went wrong while creating the puzzle. Please try again later.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $puzzle = $this->puzzleService->createPuzzle($sessionId);
-            $state = $this->puzzleService->getPuzzleState($sessionId);
+            $puzzle = $this->puzzleService->generatePuzzle($studentName);
+            $state = $this->puzzleService->loadPuzzleStatus($studentName);
 
             return $this->json($state, Response::HTTP_OK);
         } catch (\Exception $e) {
@@ -42,24 +36,18 @@ class PuzzleController extends AbstractController
     }
 
     #[Route('/submit', name: 'submit_word', methods: ['POST'])]
-    /**
-     * @OA\Post(
-     *     path="/api/game/submit",
-     *     summary="Submit a word attempt"
-     * )
-     */
     public function submitWord(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $sessionId = $data['sessionId'] ?? null;
+        $studentName = $data['studentName'] ?? null;
         $word = $data['word'] ?? null;
 
-        if (!$sessionId || !$word) {
-            return $this->json(['error' => 'Student ID and word are required'], Response::HTTP_BAD_REQUEST);
+        if (!$studentName || !$word) {
+            return $this->json(['error' => 'Student Name and word are required'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $result = $this->puzzleService->submitWord($sessionId, $word);
+            $result = $this->puzzleService->submitWord($studentName, $word);
             return $this->json($result, Response::HTTP_OK);
         } catch (\Exception $e) {
             $statusCode = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException
@@ -70,34 +58,8 @@ class PuzzleController extends AbstractController
         }
     }
 
-    #[Route('/state/{sessionId}', name: 'get_state', methods: ['GET'])]
-    /**
-     * @OA\Get(
-     *     path="/api/game/state/{sessionId}",
-     *     summary="Get current puzzle state"
-     * )
-     */
-    public function getPuzzleState(string $sessionId): JsonResponse
-    {
-        try {
-            $state = $this->puzzleService->getPuzzleState($sessionId);
-            return $this->json($state, Response::HTTP_OK);
-        } catch (\Exception $e) {
-            $statusCode = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException
-                ? $e->getStatusCode()
-                : Response::HTTP_INTERNAL_SERVER_ERROR;
-
-            return $this->json(['error' => $e->getMessage()], $statusCode);
-        }
-    }
 
     #[Route('/leaderboard', name: 'get_leaderboard', methods: ['GET'])]
-    /**
-     * @OA\Get(
-     *     path="/api/game/leaderboard",
-     *     summary="Get top 10 leaderboard"
-     * )
-     */
     public function getLeaderboard(): JsonResponse
     {
         try {
@@ -109,23 +71,17 @@ class PuzzleController extends AbstractController
     }
 
     #[Route('/end', name: 'end_game', methods: ['POST'])]
-    /**
-     * @OA\Post(
-     *     path="/api/game/end",
-     *     summary="End the game"
-     * )
-     */
     public function endGame(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $sessionId = $data['sessionId'] ?? null;
+        $studentName = $data['studentName'] ?? null;
 
-        if (!$sessionId) {
-            return $this->json(['error' => 'Session ID is required'], Response::HTTP_BAD_REQUEST);
+        if (!$studentName) {
+            return $this->json(['error' => 'Student Name is required'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $result = $this->puzzleService->endGame($sessionId);
+            $result = $this->puzzleService->endGame($studentName);
             return $this->json($result, Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);

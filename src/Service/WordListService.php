@@ -8,8 +8,8 @@ use Symfony\Contracts\Cache\CacheInterface;
 class WordListService
 {
     private const DICTIONARY_FILE = __DIR__ . '/../../data/words.txt';
-    private const CACHE_TTL = 86400; // 24 hours
-    private const CACHE_KEY = 'dictionary_words';
+    private const CACHE_TTL = 43200; // 12 hours
+    private const CACHE_KEY = 'words_list';
 
     public function __construct(
         private CacheInterface $cache
@@ -36,7 +36,7 @@ class WordListService
      * @param int $maxWords 
      * @return array 
      */
-    public function calculateRemainingWords(string $remainingLetters, int $maxWords = 1000000): array
+    public function calculateRemainingWords(string $remainingLetters, int $maxWords = 8000000): array
     {
         $remainingLetters = strtolower(trim($remainingLetters));
 
@@ -47,7 +47,7 @@ class WordListService
         // Get letter frequency of remaining letters
         $letterFrequency = $this->countLetterOccurrences($remainingLetters);
         // Get optimized word candidates
-        $candidates = $this->getWordCandidates($letterFrequency, $maxWords * 3);
+        $candidates = $this->getWordCandidates($letterFrequency, $maxWords * 2);
 
         // Filter and validate candidates
         $validWords = $this->filterValidWords($candidates, $letterFrequency);
@@ -120,7 +120,7 @@ class WordListService
         // Iterate through words by length (longest first)
         foreach ($wordsByLength as $length => $words) {
             foreach ($words as $word) {
-                // Quick pre-filter: word must contain at least one of our letters
+                // Quick filter: word must contain at least one of our letters
                 if (!$this->hasCommonLettersFast($word, $availableLettersSet)) {
                     continue;
                 }

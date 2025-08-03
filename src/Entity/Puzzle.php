@@ -113,7 +113,6 @@ class Puzzle
     public function removeSubmission(Submission $submission): static
     {
         if ($this->submissions->removeElement($submission)) {
-            // set the owning side to null (unless already changed)
             if ($submission->getPuzzle() === $this) {
                 $submission->setPuzzle(null);
             }
@@ -129,12 +128,10 @@ class Puzzle
 
     public function setStudent(?Student $student): static
     {
-        // unset the owning side of the relation if necessary
         if ($student === null && $this->student !== null) {
             $this->student->setPuzzle(null);
         }
 
-        // set the owning side of the relation if necessary
         if ($student !== null && $student->getPuzzle() !== $this) {
             $student->setPuzzle($this);
         }
@@ -153,23 +150,25 @@ class Puzzle
         return $totalScore;
     }
 
-    public function canUseLetters(string $word): bool
+    public function hasAvailableLetters(string $word): bool
     {
         $word = strtoupper($word);
         $remaining = $this->remainingLetters;
-        
+
         for ($i = 0; $i < strlen($word); $i++) {
             $letter = $word[$i];
             $pos = strpos($remaining, $letter);
-            
+
             if ($pos === false) {
                 return false;
             }
-            
-            // Remove the used letter from remaining
-            $remaining = substr($remaining, 0, $pos) . substr($remaining, $pos + 1);
-        }
         
+            $remainingArray = str_split($remaining);
+            unset($remainingArray[$pos]); // Remove the letter at the given position
+            $remainingArray = array_values($remainingArray);
+            $remaining = implode('', $remainingArray);
+        }
+
         return true;
     }
 
@@ -177,16 +176,19 @@ class Puzzle
     {
         $word = strtoupper($word);
         $remaining = $this->remainingLetters;
-        
+
         for ($i = 0; $i < strlen($word); $i++) {
             $letter = $word[$i];
             $pos = strpos($remaining, $letter);
-            
-            if ($pos !== false) {
-                $remaining = substr($remaining, 0, $pos) . substr($remaining, $pos + 1);
+
+        if ($pos !== false) {
+            $remainingArray = str_split($remaining);
+            unset($remainingArray[$pos]); // Remove the letter at the given position
+            $remainingArray = array_values($remainingArray);
+            $remaining = implode('', $remainingArray);
             }
         }
-        
-        $this->remainingLetters = $remaining;
+
+        $this->remainingLetters = $remaining;   
     }
 }

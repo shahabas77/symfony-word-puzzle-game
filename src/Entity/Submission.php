@@ -16,7 +16,7 @@ class Submission
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 1, max: 14)]
+    #[Assert\Length(min: 1, max: 10)]
     #[Assert\Regex('/^[A-Za-z]+$/')]
     private ?string $word = null;
 

@@ -244,7 +244,7 @@
         <div id="message" style="margin-bottom: 20px; text-align: center;"></div>
 
         <div class="session-input">
-            <input type="text" id="sessionId" placeholder="Enter your username" value="">
+            <input type="text" id="studentName" placeholder="Enter your username" value="">
             <button id="startGameBtn">Start Game</button>
         </div>
 
@@ -380,7 +380,7 @@
 
     <script>
         $(document).ready(function() {
-            let currentSessionId = '';
+            let currentStudentName = '';
             let gameState = null;
 
             // Start Game Button Click
@@ -411,7 +411,7 @@
             });
 
             // Enter key handlers
-            $('#sessionId').on('keypress', function(e) {
+            $('#studentName').on('keypress', function(e) {
                 if (e.which === 13) { // Enter key
                     startGame();
                 }
@@ -424,20 +424,20 @@
             });
 
             function startGame() {
-                const sessionId = $('#sessionId').val().trim();
-                if (!sessionId) {
+                const studentName = $('#studentName').val().trim();
+                if (!studentName) {
                     showMessage('Please enter a student name', 'error');
                     return;
                 }
 
-                currentSessionId = sessionId;
+                currentStudentName = studentName;
                 showMessage('Creating puzzle...', 'loading');
 
                 $.ajax({
                     url: '/api/game/puzzle',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ sessionId: sessionId }),
+                    data: JSON.stringify({ studentName: studentName }),
                     success: function(data) {
                         gameState = data;
                         updateGameDisplay();
@@ -459,7 +459,7 @@
                     return;
                 }
 
-                if (!currentSessionId) {
+                if (!currentStudentName) {
                     showMessage('Please start a game first', 'error');
                     return;
                 }
@@ -471,7 +471,7 @@
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ 
-                        sessionId: currentSessionId, 
+                        studentName: currentStudentName, 
                         word: word 
                     }),
                     success: function(data) {
@@ -498,13 +498,13 @@
             function endGame() {
                 showMessage('Ending game...', 'loading');
                 let remainingLetters = $('#remainingLetters').text();
-                let sessionId = $('#sessionId').val();
-                
+                let studentName = $('#studentName').val();
+
                 $.ajax({
                     url: '/api/game/end',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ sessionId: currentSessionId, remainingLetters: remainingLetters }),
+                    data: JSON.stringify({ studentName: currentStudentName, remainingLetters: remainingLetters }),
                     success: function(data) {
                         showGameEndModal(data);
                     }
@@ -531,9 +531,9 @@
                 $('#gameSection').hide();
                 $('#message').text('');
                 // Reset the game state
-                currentSessionId = '';
+                currentStudentName = '';
                 gameState = null;
-                $('#sessionId').val('');
+                $('#studentName').val('');
                 $('#wordInput').val('');
                 $('#puzzleLetters').text('');
                 $('#remainingLetters').text('');
@@ -552,7 +552,7 @@
 
             function loadSubmissions() {
                 $.ajax({
-                    url: `/api/game/state/${currentSessionId}`,
+                    url: `/api/game/state/${currentStudentName}`,
                     method: 'GET',
                     success: function(data) {
                         if (data.submissions) {

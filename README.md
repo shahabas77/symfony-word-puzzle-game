@@ -51,12 +51,12 @@ word-puzzle-symfony/
 │   │   ├── Puzzle.php          # Puzzle entity
 │   │   ├── Student.php         # Student/session entity
 │   │   ├── Submission.php      # Word submission entity
-│   │   └── Scores.php          # Leaderboard/score entity
+│   │          
 │   ├── Repository/
 │   │   ├── PuzzleRepository.php
 │   │   ├── StudentRepository.php
 │   │   ├── SubmissionRepository.php
-│   │   └── ScoresRepository.php
+│   │   
 │   ├── Service/
 │   │   ├── PuzzleService.php    # Core game & logic
 │   │   └── WordListService.php  # Dictionary integration
@@ -132,7 +132,7 @@ Submit a word attempt for the current puzzle.
 
 
 ### 3. Get Puzzle State
-**GET** `/api/game/state/{sessionId}`
+**GET** `/api/game/state/{studentName}`
 
 
 
@@ -146,29 +146,29 @@ Submit a word attempt for the current puzzle.
 http://localhost:8000/api/game
 ```
 
-#### 1. 🎲 Create Puzzle
+#### 1.  Create Puzzle
 ```http
 POST /api/game/puzzle
 Content-Type: application/json
 ```
 
-#### 2. 📝 Submit Word
+#### 2.  Submit Word
 ```http
 POST /api/game/submit
 Content-Type: application/json
 ```
 
-#### 3. 📊 Get Game State
+#### 3.  Get Game State
 ```http
-GET /api/game/state/{sessionId}
+GET /api/game/state/{studentName}
 ```
 
-#### 4. 🏆 Get Leaderboard
+#### 4.  Get Leaderboard
 ```http
 GET /api/game/leaderboard
 ```
 
-#### 5. ⛔ End Game
+#### 5.  End Game
 ```http
 POST /api/game/end
 Content-Type: application/json
@@ -288,7 +288,7 @@ class GameServiceTest extends TestCase
 
 #### Student Entity
 - `id`: Primary key
-- `sessionId`: Unique session identifier
+- `name`: Unique student identifier
 - `puzzle`: Associated puzzle
 - `lastActivity`: Last activity timestamp
 
@@ -299,13 +299,6 @@ class GameServiceTest extends TestCase
 - `puzzle`: Associated puzzle
 - `submittedAt`: Submission timestamp
 
-#### Scores Entity
-- `id`: Primary key
-- `word`: Word entry
-- `score`: Word score
-- `createdAt`: Entry timestamp
-
-```
 
 ##  Deployment
 

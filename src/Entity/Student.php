@@ -16,7 +16,8 @@ class Student
 
     #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank]
-    private ?string $sessionId = null;
+    #[Assert\Length(min: 2, max: 50)]
+    private ?string $studentName = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -30,7 +31,7 @@ class Student
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();    
         $this->lastActivity = new \DateTimeImmutable();
     }
 
@@ -39,14 +40,14 @@ class Student
         return $this->id;
     }
 
-    public function getSessionId(): ?string
+    public function getStudentName(): ?string
     {
-        return $this->sessionId;
+        return $this->studentName;
     }
 
-    public function setSessionId(string $sessionId): static
+    public function setStudentName(string $studentName): static
     {
-        $this->sessionId = $sessionId;
+        $this->studentName = $studentName;
         return $this;
     }
 

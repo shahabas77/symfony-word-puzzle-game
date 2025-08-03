@@ -55,7 +55,7 @@ class PuzzleServiceTest extends TestCase
         $puzzle->method('isActive')->willReturn(true);
         $this->studentRepository->method('findOneBy')->willReturn($student);
 
-        $result = $this->service->createPuzzle('session-abc');
+        $result = $this->service->generatePuzzle('session-abc');
         $this->assertEquals($puzzle, $result);
     }
 
@@ -66,7 +66,7 @@ class PuzzleServiceTest extends TestCase
         $this->entityManager->expects($this->atLeastOnce())->method('persist');
         $this->entityManager->expects($this->once())->method('flush');
 
-        $result = $this->service->createPuzzle('session-xyz');
+        $result = $this->service->generatePuzzle('session-xyz');
         $this->assertInstanceOf(Puzzle::class, $result);
         $this->assertEquals(14, strlen($result->getPuzzleString()));
     }
@@ -130,7 +130,7 @@ class PuzzleServiceTest extends TestCase
     {
         $puzzle = $this->createConfiguredMock(Puzzle::class, [
             'isActive' => true,
-            'canUseLetters' => true,
+            'hasAvailableLetters' => true,
             'getTotalScore' => 10,
             'getRemainingLetters' => 'ABCDE',
             'getPuzzleString' => 'RANDOMPUZZLE',
@@ -160,7 +160,7 @@ class PuzzleServiceTest extends TestCase
     {
         $this->studentRepository->method('findOneBy')->willReturn(null);
         $this->expectException(NotFoundHttpException::class);
-        $this->service->getPuzzleState('non-existent');
+        $this->service->loadPuzzleStatus('non-existent');
     }
 
     public function testGetPuzzleStateReturnsInfo()
@@ -184,7 +184,7 @@ class PuzzleServiceTest extends TestCase
 
         $this->studentRepository->method('findOneBy')->willReturn($student);
 
-        $result = $this->service->getPuzzleState('sess');
+        $result = $this->service->loadPuzzleStatus('sess');
         $this->assertEquals('ABCDEF', $result['puzzleString']);
         $this->assertTrue($result['isActive']);
         $this->assertCount(1, $result['submissions']);
