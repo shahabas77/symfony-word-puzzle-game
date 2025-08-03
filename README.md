@@ -195,7 +195,7 @@ Content-Type: application/json
   - Word can be formed from remaining letters
   - Word hasn't been submitted before
 
-### 3. **Scoring & Letter Management**
+### 3. **Scoring**
 - Score = 1 point per letter used
 - Used letters are removed from remaining pool
 - Total score accumulates across submissions
@@ -206,10 +206,8 @@ Content-Type: application/json
   - Student manually ends the game
 - System shows final score and remaining valid words
 
-### 5. **Leaderboard Management**
-- Top 10 highest-scoring unique words
-- No duplicate words allowed
-- Automatic cleanup of lower-scoring entries
+### 5. **Leaderboard **
+- Top 10 highest-scoring Students
 
 ## 🧪 Testing
 
